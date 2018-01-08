@@ -6,7 +6,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use AppBundle\Document\Product;
-use Symfony\Component\HttpFoundation\Response;
+use AppBundle\Form\ProductType;
+
 
 class DefaultController extends Controller {
 
@@ -24,14 +25,25 @@ class DefaultController extends Controller {
      * @Route("/create", name="create")
      */
     public function createAction() {
-        $product = new Product();
-        $product->setName('A Foo Bar');
-        $product->setPrice('19.99');
+
         $dm = $this->get('doctrine_mongodb')->getManager();
-        $dm->persist($product);
-        $dm->flush();
-//        var_dump($product->getName());exit;
-        return new Response('Created product id ' . $product->getId());
+
+        $product = new Product();
+        $form = $this->createForm(new ProductType(), $product);
+        $request = $this->getRequest();
+        if ($request->isMethod('Post')) {
+            $form->handleRequest($request);
+            if ($form->isValid()) {
+                $product = $form->getData();
+                $dm->persist($product);
+                $dm->flush();
+                // Puis met le flash dans la session de l'utilisateur
+              
+                return $this->redirectToRoute('create');
+            }
+        }
+ 
+        return $this->render('AppBundle:product:create.html.twig', array('form' => $form->createView()));
     }
 
     /**
@@ -40,15 +52,28 @@ class DefaultController extends Controller {
     public function updateAction($id) {
         $dm = $this->get('doctrine_mongodb')->getManager();
         $product = $dm->getRepository('AppBundle:Product')->find($id);
-//        var_dump($product->getName());exit;
+ 
         if (!$product) {
             throw $this->createNotFoundException('No product found for id ' . $id);
-        }
+        }else{
+            $form = $this->createForm(new ProductType(), $product);
+            $request = $this->getRequest();
+                if ($request->isMethod('Post')) {
+                    $form->handleRequest($request);
+                    if ($form->isValid()) {
+                        $product = $form->getData();
+                        $dm->persist($product);
+                        $dm->flush();
+                        // Puis met le flash dans la session de l'utilisateur
 
-        $product->setName('New product name!');
-        $dm->flush();
+                        return $this->redirectToRoute('homepage');
+                    }
+                }
+            }
 
-        return $this->redirectToRoute('homepage');
+        
+
+        return $this->render('AppBundle:product:update.html.twig', array('form' => $form->createView()));
     }
 
     /**

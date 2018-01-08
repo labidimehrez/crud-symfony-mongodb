@@ -1,1 +1,8 @@
- 
+   {# renders all fields #}
+  
+   {{ form_start(form) }}    
+{{ form_widget(form) }}
+
+{# renders all fields *and* the form start and end tags #}
+ {{ form_rest(form) }}
+    {{ form_end(form) }}   

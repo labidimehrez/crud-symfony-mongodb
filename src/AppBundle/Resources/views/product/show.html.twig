@@ -4,6 +4,7 @@
         id: <td> {{ product.id }}</td>
         name: <td>{{product.name}}</td>
         price:  <td>{{product.price}}</td>
+        <td><a href="{{ path('update',{'id':product.id}) }}"> update</a> </td>
     </tr>
     </br>
 {% endfor %} 
